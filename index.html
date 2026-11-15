@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/icon-512.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">Умный список покупок</title>
-    <!-- Вот сюда вставляем иконку -->
+    
+    <!-- Манифест и мета-теги PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#27ae60">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Покупки">
+
+    <!-- Иконки -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
     
     <style>
-        /* Здесь дальше идут стили */
         :root {
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
             --card-bg: #ffffff;
@@ -445,7 +453,7 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modal-title">Экспорт списка покупок</h3>
-                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+                <button class="modal-close" onclick="closeShareModal()">×</button>
             </div>
             <textarea id="share-text-area" class="modal-textarea" readonly></textarea>
             <div class="modal-footer">
@@ -460,336 +468,7 @@
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header">
                 <h3 id="cat-modal-title">Новая категория</h3>
-                <button class="modal-close" onclick="closeAddCategoryModal()">&times;</button>
+                <button class="modal-close" onclick="closeAddCategoryModal()">×</button>
             </div>
             <input type="text" id="new-category-name" placeholder="Название категории" style="width: 100%; margin-bottom: 15px; box-sizing: border-box;" autocomplete="off">
-            <div class="modal-footer">
-                <button type="button" class="btn-action btn-share" onclick="addNewCategory()">Добавить</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const translations = {
-            ru: {
-                title: "Список покупок",
-                subtitle: "Умный домашний помощник с бюджетом",
-                placeholder: "Что нужно купить?",
-                qtyPlaceholder: "Кол-во (напр. 2)",
-                pricePlaceholder: "Цена",
-                addBtn: "Добавить",
-                clearBtn: "Очистить купленное",
-                shareBtn: "📋 Экспорт",
-                printBtn: "🖨️ Печать",
-                addCatBtn: "➕ Категория",
-                modalTitle: "Экспорт списка покупок",
-                catModalTitle: "Добавить новую категорию",
-                selectAllBtn: "Выделить",
-                copyBtn: "Копировать",
-                copiedAlert: "Скопировано в буфер обмена!",
-                copyError: "Не удалось скопировать автоматически.",
-                totalCount: "Позиций: ",
-                totalBudget: "Сумма: ",
-                delete: "Удалить",
-                empty: "Список пуст. Отличный повод отдохнуть!"
-            },
-            uk: {
-                title: "Список покупок",
-                subtitle: "Розумний домашній помічник з бюджетом",
-                placeholder: "Що потрібно купити?",
-                qtyPlaceholder: "Кіл-сть (напр. 2)",
-                pricePlaceholder: "Ціна",
-                addBtn: "Додати",
-                clearBtn: "Очистити куплене",
-                shareBtn: "📋 Експорт",
-                printBtn: "🖨️ Друк",
-                addCatBtn: "➕ Категорія",
-                modalTitle: "Експорт списку покупок",
-                catModalTitle: "Додати нову категорію",
-                selectAllBtn: "Виділити",
-                copyBtn: "Копіювати",
-                copiedAlert: "Скопійовано!",
-                copyError: "Не вдалося скопіювати.",
-                totalCount: "Позицій: ",
-                totalBudget: "Сума: ",
-                delete: "Видалити",
-                empty: "Список порожній. Чудовий привід відпочити!"
-            },
-            de: {
-                title: "Einkaufsliste",
-                subtitle: "Intelligenter Haushaltshelfer mit Budget",
-                placeholder: "Was muss gekauft werden?",
-                qtyPlaceholder: "Menge (z.B. 2)",
-                pricePlaceholder: "Preis",
-                addBtn: "Hinzufügen",
-                clearBtn: "Erledigte löschen",
-                shareBtn: "📋 Exportieren",
-                printBtn: "🖨️ Drucken",
-                addCatBtn: "➕ Kategorie",
-                modalTitle: "Einkaufsliste exportieren",
-                catModalTitle: "Neue Kategorie hinzufügen",
-                selectAllBtn: "Auswählen",
-                copyBtn: "Kopieren",
-                copiedAlert: "In die Zwischenablage kopiert!",
-                copyError: "Konnte nicht kopiert werden.",
-                totalCount: "Artikel: ",
-                totalBudget: "Gesamt: ",
-                delete: "Löschen",
-                empty: "Die Liste ist leer. Zeit zum Entspannen!"
-            }
-        };
-
-        let currentLang = localStorage.getItem('shopping_lang') || 'ru';
-        document.getElementById('lang-select').value = currentLang;
-
-        let currentTheme = localStorage.getItem('shopping_theme') || 'light';
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        document.getElementById('theme-toggle-btn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
-
-        let categories = JSON.parse(localStorage.getItem('shopping_cats')) || ["Продукты", "Дом", "Здоровье", "Разное"];
-
-        let items = JSON.parse(localStorage.getItem('shopping_items')) || [
-            { id: 1, name: "Оливковое масло", qty: "1 бут.", price: 6.99, category: "Продукты", done: false },
-            { id: 2, name: "Зеленый чай", qty: "1 пач.", price: 2.49, category: "Продукты", done: false },
-            { id: 3, name: "Питьевая вода", qty: "6 б.", price: 3.50, category: "Продукты", done: true }
-        ];
-
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            localStorage.setItem('shopping_theme', currentTheme);
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            document.getElementById('theme-toggle-btn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
-        }
-
-        function changeLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('shopping_lang', lang);
-            updateStaticTexts();
-            render();
-        }
-
-        function updateStaticTexts() {
-            const t = translations[currentLang];
-            document.getElementById('page-title').innerText = t.title;
-            document.getElementById('t-app-title').innerText = t.title;
-            document.getElementById('t-app-subtitle').innerText = t.subtitle;
-            document.getElementById('item-name').placeholder = t.placeholder;
-            document.getElementById('item-qty').placeholder = t.qtyPlaceholder;
-            document.getElementById('item-price').placeholder = t.pricePlaceholder;
-            document.getElementById('t-btn-add').innerText = t.addBtn;
-            document.getElementById('t-btn-clear').innerText = t.clearBtn;
-            document.getElementById('t-btn-share').innerText = t.shareBtn;
-            document.getElementById('t-btn-print').innerText = t.printBtn;
-            document.getElementById('t-btn-add-cat').innerText = t.addCatBtn;
-            document.getElementById('modal-title').innerText = t.modalTitle;
-            document.getElementById('cat-modal-title').innerText = t.catModalTitle;
-            document.getElementById('t-btn-select-all').innerText = t.selectAllBtn;
-            document.getElementById('t-btn-copy').innerText = t.copyBtn;
-            
-            updateCategorySelect();
-        }
-
-        function updateCategorySelect() {
-            const catSelect = document.getElementById('item-category');
-            const currentSelected = catSelect.value;
-            catSelect.innerHTML = '';
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.text = cat;
-                catSelect.appendChild(opt);
-            });
-            if (categories.includes(currentSelected)) {
-                catSelect.value = currentSelected;
-            }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('shopping_items', JSON.stringify(items));
-            localStorage.setItem('shopping_cats', JSON.stringify(categories));
-            render();
-        }
-
-        function addItem(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('item-name');
-            const qtyInput = document.getElementById('item-qty');
-            const priceInput = document.getElementById('item-price');
-            const categoryInput = document.getElementById('item-category');
-
-            const newItem = {
-                id: Date.now(),
-                name: nameInput.value.trim(),
-                qty: qtyInput.value.trim(),
-                price: parseFloat(priceInput.value) || 0,
-                category: categoryInput.value,
-                done: false
-            };
-
-            items.push(newItem);
-            nameInput.value = '';
-            qtyInput.value = '';
-            priceInput.value = '';
-            saveAndRender();
-        }
-
-        function toggleItem(id) {
-            items = items.map(item => item.id === id ? { ...item, done: !item.done } : item);
-            saveAndRender();
-        }
-
-        function deleteItem(id) {
-            items = items.filter(item => item.id != id);
-            saveAndRender();
-        }
-
-        function deleteCategory(catName) {
-            if (confirm(`Удалить категорию "${catName}" и все товары в ней?`)) {
-                items = items.filter(item => item.category !== catName);
-                categories = categories.filter(c => c !== catName);
-                saveAndRender();
-            }
-        }
-
-        function clearDone() {
-            items = items.filter(item => !item.done);
-            saveAndRender();
-        }
-
-        function openAddCategoryModal() {
-            document.getElementById('new-category-name').value = '';
-            document.getElementById('cat-modal').classList.add('active');
-        }
-
-        function closeAddCategoryModal() {
-            document.getElementById('cat-modal').classList.remove('active');
-        }
-
-        function addNewCategory() {
-            const name = document.getElementById('new-category-name').value.trim();
-            if (name && !categories.includes(name)) {
-                categories.push(name);
-                saveAndRender();
-                closeAddCategoryModal();
-            }
-        }
-
-        function openShareModal() {
-            const t = translations[currentLang];
-            let lines = ["🛒 " + t.title, ""];
-            let totalSum = 0;
-
-            categories.forEach(cat => {
-                const catItems = items.filter(item => item.category === cat && !item.done);
-                if (catItems.length > 0) {
-                    lines.push("📁 " + cat + ":");
-                    catItems.forEach(item => {
-                        let qtyStr = item.qty ? ` (${item.qty})` : "";
-                        let priceStr = item.price > 0 ? ` — ${item.price.toFixed(2)}€` : "";
-                        lines.push(`  • ${item.name}${qtyStr}${priceStr}`);
-                        totalSum += Number(item.price) || 0;
-                    });
-                    lines.push("");
-                }
-            });
-
-            if (totalSum > 0) {
-                lines.push(`💶 ${t.totalBudget} ${totalSum.toFixed(2)}€`);
-            }
-
-            document.getElementById('share-text-area').value = lines.join("\n");
-            document.getElementById('share-modal').classList.add('active');
-        }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.remove('active');
-        }
-
-        function selectShareText() {
-            const textarea = document.getElementById('share-text-area');
-            textarea.select();
-            textarea.setSelectionRange(0, 99999);
-        }
-
-        async function copyShareText() {
-            const textarea = document.getElementById('share-text-area');
-            const t = translations[currentLang];
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(textarea.value);
-                    alert(t.copiedAlert);
-                } else {
-                    selectShareText();
-                    document.execCommand('copy');
-                    alert(t.copiedAlert);
-                }
-            } catch (err) {
-                selectShareText();
-                alert(t.copyError);
-            }
-        }
-
-        function render() {
-            const t = translations[currentLang];
-            const container = document.getElementById('lists-container');
-            container.innerHTML = '';
-            
-            document.getElementById('val-count').innerText = items.length;
-
-            let totalBudget = 0;
-            items.forEach(item => {
-                if (!item.done) totalBudget += Number(item.price) || 0;
-            });
-            document.getElementById('val-budget').innerText = totalBudget.toFixed(2) + ' €';
-
-            let hasAnyItems = false;
-
-            categories.forEach(cat => {
-                const catItems = items.filter(item => item.category === cat);
-                if (catItems.length > 0) {
-                    hasAnyItems = true;
-                    const groupDiv = document.createElement('div');
-                    groupDiv.className = 'category-group';
-                    
-                    let html = `<div class="category-title"><span>📁 ${cat}</span> <button class="text-danger-btn" style="font-size:11px; padding:2px 6px;" onclick="deleteCategory('${cat}')">✕</button></div><ul>`;
-                    
-                    catItems.forEach(item => {
-                        let metaParts = [];
-                        if (item.qty) metaParts.push(item.qty);
-                        if (item.price > 0) metaParts.push(item.price.toFixed(2) + ' €');
-                        let metaStr = metaParts.length > 0 ? `<span class="item-meta">${metaParts.join(' • ')}</span>` : '';
-
-                        let checkedAttr = item.done ? 'checked' : '';
-                        let liClass = item.done ? 'done' : '';
-
-                        html += `<li class="${liClass}">
-                            <div class="item-info">
-                                <input type="checkbox" ${checkedAttr} onchange="toggleItem(${item.id})">
-                                <div class="item-details">
-                                    <span class="item-name">${escapeHtml(item.name)}</span>
-                                    ${metaStr}
-                                </div>
-                            </div>
-                            <button class="btn-sm btn-delete" onclick="deleteItem(${item.id})">${t.delete}</button>
-                        </li>`;
-                    });
-                    html += '</ul>';
-                    groupDiv.innerHTML = html;
-                    container.appendChild(groupDiv);
-                }
-            });
-
-            if (!hasAnyItems) {
-                container.innerHTML = `<div class="empty-state">${t.empty}</div>`;
-            }
-        }
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-
-        updateStaticTexts();
-        render();
-    </script>
-</body>
-</html>
+            <div class="modal
