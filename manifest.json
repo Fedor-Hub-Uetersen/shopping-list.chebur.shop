@@ -1,0 +1,19 @@
+{
+  "name": "Умный список покупок",
+  "short_name": "Покупки",
+  "description": "Умный домашний помощник с бюджетом и категориями",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#27ae60",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
