@@ -555,7 +555,6 @@
     <script>
         const DEFAULT_CAT_KEYS = ['food', 'home', 'health', 'other'];
 
-        // Карта миграции старых русских названий категорий в системные ключи
         const LEGACY_CAT_MAP = {
             'Продукты': 'food',
             'Дом': 'home',
@@ -583,11 +582,11 @@
                 selectAllBtn: "Выделить",
                 copyBtn: "Копировать",
                 copiedAlert: "Скопировано в буфер обмена!",
-                copyError: "Не удалось скопіровать автоматически.",
+                copyError: "Не удалось скопировать автоматически.",
                 totalCount: "Позиций:",
                 totalBudget: "Сумма:",
                 delete: "Удалить",
-                confirmDeleteCat: 'Удалить категорию "{cat}" и все товары в ней?',
+                confirmDeleteCat: "Удалить категорию «{cat}» и все товары в ней?",
                 empty: "Список пуст. Отличный повод отдохнуть!",
                 categories: {
                     food: "Продукты",
@@ -624,12 +623,12 @@
                 totalCount: "Позицій:",
                 totalBudget: "Сума:",
                 delete: "Видалити",
-                confirmDeleteCat: 'Видалити категорію "{cat}" та всі товари в ній?',
+                confirmDeleteCat: "Видалити категорію «{cat}» та всі товари в ній?",
                 empty: "Список порожній. Чудовий привід відпочити!",
                 categories: {
                     food: "Продукти",
                     home: "Дім",
-                    health: "Здоров'я",
+                    health: "Здоров’я",
                     other: "Різне"
                 },
                 demoItems: [
@@ -661,7 +660,7 @@
                 totalCount: "Artikel:",
                 totalBudget: "Gesamt:",
                 delete: "Löschen",
-                confirmDeleteCat: 'Kategorie "{cat}" und alle Artikel darin löschen?',
+                confirmDeleteCat: "Kategorie „{cat}“ und alle Artikel darin löschen?",
                 empty: "Die Liste ist leer. Zeit zum Entspannen!",
                 categories: {
                     food: "Lebensmittel",
@@ -698,7 +697,7 @@
                 totalCount: "Items:",
                 totalBudget: "Total:",
                 delete: "Delete",
-                confirmDeleteCat: 'Delete category "{cat}" and all items inside it?',
+                confirmDeleteCat: "Delete category “{cat}” and all items inside it?",
                 empty: "The list is empty. Time to relax!",
                 categories: {
                     food: "Groceries",
@@ -722,7 +721,6 @@
         document.documentElement.setAttribute('data-theme', currentTheme);
         document.getElementById('theme-toggle-btn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
 
-        // Миграция категорий из localStorage
         function loadCategories() {
             const saved = JSON.parse(localStorage.getItem('shopping_cats'));
             if (!saved || !Array.isArray(saved) || saved.length === 0) {
@@ -732,7 +730,6 @@
             return [...new Set(migrated)];
         }
 
-        // Миграция товаров из localStorage
         function loadItems() {
             const saved = JSON.parse(localStorage.getItem('shopping_items'));
             if (!saved) {
@@ -747,7 +744,6 @@
         let categories = loadCategories();
         let items = loadItems();
 
-        // Получение отображаемого названия категории на текущем языке
         function getCategoryDisplayName(catKey) {
             const normalized = LEGACY_CAT_MAP[catKey] || catKey;
             return translations[currentLang]?.categories?.[normalized] || catKey;
@@ -792,7 +788,7 @@
             document.getElementById('t-btn-save-cat').innerText = t.addBtn;
             document.getElementById('t-btn-select-all').innerText = t.selectAllBtn;
             document.getElementById('t-btn-copy').innerText = t.copyBtn;
-            
+
             updateCategorySelect();
         }
 
@@ -881,7 +877,6 @@
             const rawName = document.getElementById('new-category-name').value.trim();
             if (!rawName) return;
 
-            // Проверяем, не совпадает ли введённое имя со стандартной категорией на текущем языке
             const stdCats = translations[currentLang].categories;
             const matchedKey = Object.keys(stdCats).find(
                 k => stdCats[k].toLowerCase() === rawName.toLowerCase()
@@ -898,6 +893,7 @@
 
         function openShareModal() {
             const t = translations[currentLang];
+            const nl = String.fromCharCode(10);
             let lines = ["🛒 " + t.title, ""];
             let totalSum = 0;
 
@@ -919,7 +915,7 @@
                 lines.push(`💶 ${t.totalBudget} ${totalSum.toFixed(2)}€`);
             }
 
-            document.getElementById('share-text-area').value = lines.join("\n");
+            document.getElementById('share-text-area').value = lines.join(nl);
             document.getElementById('share-modal').classList.add('active');
         }
 
@@ -955,7 +951,7 @@
             const t = translations[currentLang];
             const container = document.getElementById('lists-container');
             container.innerHTML = '';
-            
+
             document.getElementById('val-count').innerText = items.length;
 
             let totalBudget = 0;
@@ -973,7 +969,7 @@
                     const displayCatName = getCategoryDisplayName(catKey);
                     const groupDiv = document.createElement('div');
                     groupDiv.className = 'category-group';
-                    
+
                     const titleDiv = document.createElement('div');
                     titleDiv.className = 'category-title';
                     titleDiv.innerHTML = `<span>📁 ${escapeHtml(displayCatName)}</span>`;
@@ -1023,12 +1019,9 @@
         }
 
         function escapeHtml(text) {
-            return String(text)
-                .replace(/&/g, "&")
-                .replace(/</g, "<")
-                .replace(/>/g, ">")
-                .replace(/"/g, """)
-                .replace(/'/g, "'");
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
         }
 
         updateStaticTexts();
